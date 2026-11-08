@@ -1,0 +1,195 @@
+<Window x:Class="VmixSubtitleController.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf" Title="im too lazy" Width="1670" Height="960" MinWidth="1500" MinHeight="820" WindowState="Maximized" WindowStartupLocation="CenterScreen" Background="{DynamicResource GlassWindowBrush}" Foreground="{DynamicResource PaletteECEDEE}" FontFamily="Segoe UI" FontSize="13"> <Window.Resources>
+<LinearGradientBrush x:Key="GlassWindowBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#35393E" Offset="0"/><GradientStop Color="#202326" Offset="0.42"/><GradientStop Color="#111315" Offset="0.75"/><GradientStop Color="#2E3237" Offset="1"/></LinearGradientBrush>
+<LinearGradientBrush x:Key="GlassPanelBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#C43B3F44" Offset="0"/><GradientStop Color="#B8202327" Offset="0.48"/><GradientStop Color="#C4292C30" Offset="1"/></LinearGradientBrush>
+<LinearGradientBrush x:Key="GlassSidebarBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#DE282C30" Offset="0"/><GradientStop Color="#E5121417" Offset="0.75"/><GradientStop Color="#DD22262A" Offset="1"/></LinearGradientBrush>
+<LinearGradientBrush x:Key="GlassLineBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#807C8289" Offset="0"/><GradientStop Color="#263B4046" Offset="0.55"/><GradientStop Color="#59565B62" Offset="1"/></LinearGradientBrush>
+<SolidColorBrush x:Key="Palette17191B" Color="#17191B"/><SolidColorBrush x:Key="Palette191A1C" Color="#191A1C"/><SolidColorBrush x:Key="Palette1C1D1F" Color="#1C1D1F"/><SolidColorBrush x:Key="Palette1C1E20" Color="#1C1E20"/><SolidColorBrush x:Key="Palette1E2022" Color="#1E2022"/><SolidColorBrush x:Key="Palette202123" Color="#202123"/><SolidColorBrush x:Key="Palette202225" Color="#202225"/><SolidColorBrush x:Key="Palette252729" Color="#252729"/><SolidColorBrush x:Key="Palette282A2D" Color="#282A2D"/><SolidColorBrush x:Key="Palette282B2E" Color="#282B2E"/><SolidColorBrush x:Key="Palette303235" Color="#303235"/><SolidColorBrush x:Key="Palette303236" Color="#303236"/><SolidColorBrush x:Key="Palette343638" Color="#343638"/><SolidColorBrush x:Key="Palette34373B" Color="#34373B"/><SolidColorBrush x:Key="Palette35383C" Color="#35383C"/><SolidColorBrush x:Key="Palette383B3F" Color="#383B3F"/><SolidColorBrush x:Key="Palette3D4044" Color="#3D4044"/><SolidColorBrush x:Key="Palette414448" Color="#414448"/><SolidColorBrush x:Key="Palette44474B" Color="#44474B"/><SolidColorBrush x:Key="Palette484B50" Color="#484B50"/><SolidColorBrush x:Key="Palette70747A" Color="#70747A"/><SolidColorBrush x:Key="Palette777A7E" Color="#777A7E"/><SolidColorBrush x:Key="Palette777B81" Color="#777B81"/><SolidColorBrush x:Key="Palette999CA1" Color="#999CA1"/><SolidColorBrush x:Key="PaletteA2A6AC" Color="#A2A6AC"/><SolidColorBrush x:Key="PaletteCACCCF" Color="#CACCCF"/><SolidColorBrush x:Key="PaletteCED0D4" Color="#CED0D4"/><SolidColorBrush x:Key="PaletteD0D2D6" Color="#D0D2D6"/><SolidColorBrush x:Key="PaletteECEDEE" Color="#ECEDEE"/>
+        <SolidColorBrush x:Key="WindowBrush" Color="#1C1D1F"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#202123" Opacity="0.88"/>
+        <SolidColorBrush x:Key="Panel2Brush" Color="#282A2D"/>
+        <SolidColorBrush x:Key="InputBrush" Color="#191A1C"/>
+        <SolidColorBrush x:Key="LineBrush" Color="#343638"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#44474B"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#ECEDEE"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#999CA1"/>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PaletteECEDEE}"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource Palette303235}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PaletteECEDEE}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Palette414448}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource Palette3D4044}"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource Palette70747A}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource PaletteCACCCF}"/></Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource Palette252729}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{DynamicResource Palette44474B}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Palette777B81}"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="{DynamicResource Palette191A1C}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PaletteECEDEE}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Palette414448}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource PaletteECEDEE}"/>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource PaletteECEDEE}"/>
+            <Setter Property="Background" Value="{DynamicResource Palette202123}"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Palette3D4044}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Palette484B50}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource Palette191A1C}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PaletteECEDEE}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Palette414448}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="ComboBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="5">
+                                <Grid>
+                                    <ContentPresenter Margin="{TemplateBinding Padding}"
+                                                      VerticalAlignment="Center"
+                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
+                                    <ToggleButton HorizontalAlignment="Right" Width="38"
+                                                  Background="Transparent" BorderThickness="0"
+                                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                                  Focusable="False">
+                                        <Path Data="M 0 0 L 5 5 L 10 0 Z" Fill="{DynamicResource Palette999CA1}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </ToggleButton>
+                                </Grid>
+                            </Border>
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="{DynamicResource Palette202123}" BorderBrush="{DynamicResource Palette414448}" BorderThickness="1" CornerRadius="5"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ScrollViewer MaxHeight="360" CanContentScroll="True">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource Palette70747A}"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource Palette777B81}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="{DynamicResource Palette191A1C}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Palette414448}"/>
+        </Style>
+    </Window.Resources><Grid><Grid x:Name="LegacyShell" Visibility="Collapsed">
+<Grid.ColumnDefinitions><ColumnDefinition Width="224"/><ColumnDefinition Width="*"/><ColumnDefinition Width="364"/></Grid.ColumnDefinitions>
+<Border Background="{DynamicResource GlassSidebarBrush}" BorderBrush="{DynamicResource Palette303236}" BorderThickness="0,0,1,0" Padding="18,26"><DockPanel>
+<StackPanel DockPanel.Dock="Top" Margin="6,0,0,28"><TextBlock x:Name="AppNameText" Text="▣  im too lazy" FontSize="24" FontWeight="Bold"/><Border BorderBrush="{DynamicResource Palette303236}" BorderThickness="0,1,0,0" Margin="0,24,0,0"/></StackPanel>
+<CheckBox x:Name="DarkModeBox" DockPanel.Dock="Bottom" Content="Karanlık Mod" IsChecked="True" Foreground="{DynamicResource PaletteCED0D4}" Checked="ThemeMode_Changed" Unchecked="ThemeMode_Changed" Margin="12,20,0,4"/>
+<StackPanel><Button x:Name="HomeNav" Content="⌂    Ana Panel" Click="HomeNav_Click" Height="48" Margin="0,5,0,0" HorizontalContentAlignment="Left" Background="Transparent" BorderThickness="0"/><Button x:Name="SlotsNav" Content="▦    Altyazı Slotları" Click="SlotsNav_Click" Height="48" Margin="0,5,0,0" HorizontalContentAlignment="Left" Background="Transparent" BorderThickness="0"/><Button x:Name="EditorNav" Content="▤    Çeviri Editörü" Click="EditorNav_Click" Height="48" Margin="0,5,0,0" HorizontalContentAlignment="Left" Background="Transparent" BorderThickness="0"/><Button x:Name="ConnectionsNav" Content="⇄    Bağlantılar" Click="ConnectionsNav_Click" Height="48" Margin="0,5,0,0" HorizontalContentAlignment="Left" Background="Transparent" BorderThickness="0"/><Button x:Name="SettingsNav" Content="⚙    Ayarlar" Click="Settings_Click" Height="48" HorizontalContentAlignment="Left" Background="Transparent" BorderThickness="0" Margin="0,5,0,0"/></StackPanel></DockPanel></Border>
+<Grid Grid.Column="1" Margin="24,28,14,18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+<Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="210"/></Grid.ColumnDefinitions><StackPanel><TextBlock x:Name="PageHeading" Text="vMix Altyazı Kontrol ve Çeviri Uygulaması" FontSize="25" FontWeight="Bold" TextWrapping="Wrap"/><TextBlock x:Name="PageDescription" Text="Canlı yayınlarınız için hızlı ve güvenilir altyazı yönetimi" Foreground="{DynamicResource PaletteA2A6AC}" FontSize="15" Margin="0,8,0,16"/><StackPanel Orientation="Horizontal"><Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="7" Padding="12,7"><TextBlock x:Name="VmixBadge" Text="●  vMix bağlı değil"/></Border><Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="7" Padding="12,7" Margin="12,0,0,0"><TextBlock x:Name="AccountBadge" Text="●  ChatGPT bağlı değil"/></Border></StackPanel></StackPanel><TextBox x:Name="DashboardSearch" Grid.Column="1" Height="42" Margin="12,12,0,0" VerticalAlignment="Top" TextChanged="DashboardSearch_Changed" ToolTip="Slot, dosya, video veya altyazı içinde ara" VerticalContentAlignment="Center"/></Grid>
+<UniformGrid x:Name="ActionCards" Grid.Row="1" Columns="4" Margin="0,20,0,18"><Button Click="ConnectionsNav_Click" Margin="0,0,12,0" Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" Padding="18" HorizontalContentAlignment="Stretch"><StackPanel><Border Background="{DynamicResource Palette35383C}" CornerRadius="12" Width="56" Height="56" HorizontalAlignment="Left" Margin="0,0,0,18"><TextBlock Text="▣" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="vMix Bağlantısı" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="vMix'e bağlanın ve altyazı girdilerini yönetin." TextWrapping="Wrap" Foreground="{DynamicResource PaletteA2A6AC}" FontWeight="Normal" Margin="0,12,0,0" LineHeight="21"/><TextBlock Text="›" HorizontalAlignment="Right" FontSize="26" Margin="0,10,0,0"/></StackPanel></Button><Button Click="TranslateSelected_Click" Margin="0,0,12,0" Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" Padding="18" HorizontalContentAlignment="Stretch"><StackPanel><Border Background="{DynamicResource Palette35383C}" CornerRadius="12" Width="56" Height="56" HorizontalAlignment="Left" Margin="0,0,0,18"><TextBlock Text="◎" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="ChatGPT Çeviri" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="Altyazılarınızı farklı dillere çevirin." TextWrapping="Wrap" Foreground="{DynamicResource PaletteA2A6AC}" FontWeight="Normal" Margin="0,12,0,0" LineHeight="21"/><TextBlock Text="›" HorizontalAlignment="Right" FontSize="26" Margin="0,10,0,0"/></StackPanel></Button><Button Click="DetailPreview_Click" Margin="0,0,12,0" Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" Padding="18" HorizontalContentAlignment="Stretch"><StackPanel><Border Background="{DynamicResource Palette35383C}" CornerRadius="12" Width="56" Height="56" HorizontalAlignment="Left" Margin="0,0,0,18"><TextBlock Text="▤" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="Altyazı Önizleme" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="Canlı önizleme ile sonuçları kontrol edin." TextWrapping="Wrap" Foreground="{DynamicResource PaletteA2A6AC}" FontWeight="Normal" Margin="0,12,0,0" LineHeight="21"/><TextBlock Text="›" HorizontalAlignment="Right" FontSize="26" Margin="0,10,0,0"/></StackPanel></Button><Button Click="SlotsNav_Click" Margin="0,0,12,0" Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" Padding="18" HorizontalContentAlignment="Stretch"><StackPanel><Border Background="{DynamicResource Palette35383C}" CornerRadius="12" Width="56" Height="56" HorizontalAlignment="Left" Margin="0,0,0,18"><TextBlock Text="▱" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="Slot Yönetimi" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="vMix altyazı slotlarını kolayca yönetin." TextWrapping="Wrap" Foreground="{DynamicResource PaletteA2A6AC}" FontWeight="Normal" Margin="0,12,0,0" LineHeight="21"/><TextBlock Text="›" HorizontalAlignment="Right" FontSize="26" Margin="0,10,0,0"/></StackPanel></Button></UniformGrid>
+<Border x:Name="SlotsPage" Grid.Row="2" Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="12" Padding="12"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><Grid Margin="8,3,2,16"><TextBlock Text="Altyazı Slotları" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"/><Button Content="＋  Yeni Slot Ekle" Click="AddSlot_Click" HorizontalAlignment="Right" Height="38"/></Grid>
+<Grid Grid.Row="1" Background="{DynamicResource Palette282B2E}" Height="40"><Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="154"/><ColumnDefinition Width="190"/><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="82"/></Grid.ColumnDefinitions><TextBlock Text="Slot" Margin="12,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="vMix Video Girişi" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="SRT Dosyası" VerticalAlignment="Center"/><TextBlock Grid.Column="3" Text="Durum" VerticalAlignment="Center"/><TextBlock Grid.Column="4" Text="Önizleme" VerticalAlignment="Center"/></Grid>
+<ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="SlotsPanel"/></ScrollViewer></Grid></Border>
+<ScrollViewer x:Name="ConnectionsPage" Grid.Row="2" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="2,0,6,0"><Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="14" Padding="24" Margin="0,0,0,18"><StackPanel><TextBlock Text="vMix Bağlantısı" FontSize="21" FontWeight="SemiBold" Margin="0,0,0,18"/><TextBlock Text="Yerel veya ağdaki vMix sunucusunu otomatik bulur." Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,0,0,14" TextWrapping="Wrap"/><TextBox x:Name="ApiStatusText" Text="Bağlantı bekleniyor…" IsReadOnly="True" Height="42" VerticalContentAlignment="Center"/><WrapPanel Margin="0,14,0,0"><Button x:Name="ConnectButton" Content="vMix’e bağlan" Click="Connect_Click" Margin="0,0,10,8"/><Button Content="Girişleri yenile" Click="Refresh_Click" Margin="0,0,10,8"/></WrapPanel></StackPanel></Border><Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="14" Padding="24" Margin="0,0,0,18"><StackPanel><TextBlock Text="Altyazı Çıkışı" FontSize="21" FontWeight="SemiBold" Margin="0,0,0,18"/><TextBlock Text="vMix Title (GT / XAML)" Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,0,0,8"/><ComboBox x:Name="TitleBox" DisplayMemberPath="Display" SelectionChanged="TitleBox_SelectionChanged"/><TextBlock x:Name="TitleStatusText" Text="Subtitle: —" TextWrapping="Wrap" Margin="0,12,0,6"/><TextBlock Text="Metin alanı otomatik algılanır." Foreground="{DynamicResource PaletteA2A6AC}"/><Button Content="Tüm slotları temizle" Click="Clear_Click" HorizontalAlignment="Left" Margin="0,18,0,0"/></StackPanel></Border><Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="14" Padding="24" Margin="0,0,0,18"><StackPanel><TextBlock Text="ChatGPT Hesabı" FontSize="21" FontWeight="SemiBold" Margin="0,0,0,18"/><TextBlock x:Name="ChatGptStatusText" TextWrapping="Wrap" LineHeight="22" Margin="0,0,0,16"/><WrapPanel><Button x:Name="ChatGptConnectButton" Content="ChatGPT hesabını bağla" Click="ChatGptConnect_Click" MinHeight="42" Margin="0,0,12,10"/><Button Content="Kullanımı yönet" Click="ChatGptUsage_Click" Margin="0,0,12,10"/><Button Content="Çıkış yap" Click="ChatGptLogout_Click" Margin="0,0,0,10"/></WrapPanel><Border BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="0,1,0,0" Margin="0,12,0,0" Padding="0,18,0,0"><StackPanel><TextBlock Text="Çeviri modeli" Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,0,0,8"/><ComboBox x:Name="ChatGptModelBox" DisplayMemberPath="DisplayName" SelectionChanged="ChatGptModel_SelectionChanged"/><Button Content="Modelleri yenile" Click="ChatGptModels_Click" HorizontalAlignment="Left" Margin="0,12,0,12"/><TextBlock x:Name="TargetLanguageText" TextWrapping="Wrap" Margin="0,0,0,6"/><TextBlock Text="SRT yüklediğinizde seçili model ve hedef dil ile otomatik çeviri başlar." Foreground="{DynamicResource PaletteA2A6AC}" TextWrapping="Wrap"/></StackPanel></Border></StackPanel></Border></StackPanel></ScrollViewer><ScrollViewer x:Name="SettingsPage" Grid.Row="2" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"><StackPanel Margin="2,0,6,0"><Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="14" Padding="24" Margin="0,0,0,18"><StackPanel><TextBlock Text="Çeviri Ayarları" FontSize="21" FontWeight="SemiBold" Margin="0,0,0,18"/><TextBlock Text="Hedef dil" Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,0,0,8"/><TextBox x:Name="SettingsLanguageBox" Height="42" VerticalContentAlignment="Center"/><TextBlock Text="Örneğin Türkçe, İngilizce veya Almanca. Yeni çeviriler bu dili kullanır; mevcut altyazılar kendiliğinden değiştirilmez." Foreground="{DynamicResource PaletteA2A6AC}" TextWrapping="Wrap" Margin="0,12,0,0"/></StackPanel></Border><Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="14" Padding="24" Margin="0,0,0,18"><StackPanel><TextBlock Text="Görünüm" FontSize="21" FontWeight="SemiBold" Margin="0,0,0,18"/><CheckBox x:Name="SettingsDarkBox" Content="Karanlık görünüm" Foreground="{DynamicResource PaletteECEDEE}" Checked="SettingsTheme_Changed" Unchecked="SettingsTheme_Changed" FontSize="15"/><TextBlock Text="Pencere ve kartlar gri tonlarında katmanlı gradient kullanır." Foreground="{DynamicResource PaletteA2A6AC}" TextWrapping="Wrap" Margin="0,14,0,0"/></StackPanel></Border><WrapPanel><Button Content="Ayarları kaydet" Click="SaveInlineSettings_Click" Margin="0,0,12,12"/><Button Content="Değişiklikleri geri al" Click="ResetInlineSettings_Click" Margin="0,0,0,12"/></WrapPanel><TextBlock x:Name="SettingsStatusText" TextWrapping="Wrap" Foreground="{DynamicResource PaletteA2A6AC}"/></StackPanel></ScrollViewer>
+<Border Grid.Row="3" BorderBrush="{DynamicResource Palette303236}" BorderThickness="0,1,0,0" Padding="6,15,0,0" Margin="0,12,0,0"><Grid><TextBlock x:Name="ProgramText" Text="Program: —"/><TextBlock x:Name="GlobalStatus" Text="vMix bekleniyor…" HorizontalAlignment="Right" Foreground="{DynamicResource PaletteA2A6AC}"/></Grid></Border></Grid>
+<Grid Grid.Column="2" Margin="0,26,20,18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+<Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="12" Padding="20"><StackPanel>
+<Grid Margin="0,0,0,15"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Sistem Durumu" FontSize="17" FontWeight="SemiBold"/><Button Grid.Column="1" Content="Tümünü Gör ›" Click="ConnectionsNav_Click" HorizontalAlignment="Right" Padding="4" Background="Transparent" BorderThickness="0" FontSize="11"/></Grid>
+<Grid Margin="0,0,0,15"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><Ellipse x:Name="ConnectionDot" Width="9" Height="9" Fill="{DynamicResource Palette777A7E}" Margin="0,0,8,0"/><TextBlock Text="vMix" FontWeight="SemiBold"/></StackPanel><TextBlock x:Name="ConnectionText" Grid.Column="1" Text="Bağlı değil" TextWrapping="Wrap"/></Grid>
+<Grid Margin="0,0,0,15"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions><TextBlock Text="◎  ChatGPT" FontWeight="SemiBold"/><TextBlock x:Name="AccountSummary" Grid.Column="1" Text="Bağlı değil" TextWrapping="Wrap"/></Grid>
+<Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="160"/></Grid.ColumnDefinitions><TextBlock Text="Çeviri Motoru" FontWeight="SemiBold"/><TextBlock x:Name="EngineSummary" Grid.Column="1" Text="Bekliyor" TextWrapping="Wrap"/></Grid>
+</StackPanel></Border>
+<Border Grid.Row="1" Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource GlassLineBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,16,0,0"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+<Grid Margin="0,0,0,18"><TextBlock Text="Seçili Slot Detayı" FontSize="17" FontWeight="SemiBold"/><TextBlock x:Name="DetailSlotLabel" Text="Slot 1" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid>
+<TextBlock Text="vMix Video Girişi" Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,0,0,6"/><ComboBox x:Name="DetailInputBox" DisplayMemberPath="Display" SelectionChanged="DetailInput_Changed"/>
+<TextBlock Text="SRT Dosyası" Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,16,0,6"/><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="42"/></Grid.ColumnDefinitions><TextBox x:Name="DetailFile" IsReadOnly="True" Height="38"/><Button Grid.Column="1" Content="…" Click="DetailBrowse_Click" Padding="5" Margin="6,0,0,0"/></Grid>
+<TextBlock Text="Altyazı satırı" Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,14,0,6"/><ComboBox x:Name="DetailCueBox" SelectionChanged="DetailCue_Changed"/>
+<TextBlock Text="Orijinal Metin" Margin="0,16,0,7"/><TextBox x:Name="DetailOriginal" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Height="94" VerticalScrollBarVisibility="Auto"/>
+<TextBlock x:Name="DetailTranslationLabel" Text="Çevrilen Metin" Margin="0,16,0,7"/><TextBox x:Name="DetailTranslation" TextWrapping="Wrap" AcceptsReturn="True" Height="94" VerticalScrollBarVisibility="Auto" TextChanged="DetailTranslation_Changed"/>
+<TextBlock x:Name="DetailDraftStatus" Foreground="{DynamicResource PaletteA2A6AC}" TextWrapping="Wrap" Margin="0,8,0,12"/>
+<UniformGrid Columns="3"><Button Content="▶ Önizle" Click="DetailPreview_Click" Padding="5,10" Margin="0,0,6,0" FontSize="11"/><Button Content="SRT Kaydet" Click="DetailSave_Click" Padding="5,10" Margin="0,0,6,0" FontSize="11"/><Button Content="Slota Uygula" Click="DetailApply_Click" Padding="5,10" Background="{DynamicResource PaletteD0D2D6}" Foreground="{DynamicResource Palette202225}" FontSize="11"/></UniformGrid>
+</StackPanel></ScrollViewer></Border>
+<TextBlock x:Name="ClockText" Grid.Row="2" HorizontalAlignment="Right" Foreground="{DynamicResource PaletteA2A6AC}" Margin="0,14,0,0"/></Grid>
+</Grid>
+<wv:WebView2 x:Name="WebSurface"/>
+<Border x:Name="WebFailure" Visibility="Collapsed" Background="#17191D" Padding="40"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="700"><TextBlock Text="Arayüz açılamadı" FontSize="26" Margin="0,0,0,20"/><TextBlock x:Name="WebFailureText" TextWrapping="Wrap"/><Button Content="Tekrar dene" Click="RetryWeb_Click" Margin="0,24,0,0"/></StackPanel></Border>
+</Grid></Window>

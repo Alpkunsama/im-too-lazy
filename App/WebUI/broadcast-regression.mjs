@@ -1,0 +1,31 @@
+import {chromium} from '@playwright/test';
+import {createServer} from 'node:http';
+import {readFileSync,existsSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const source=readFileSync('src/main.tsx','utf8');
+const base=Function('return '+source.match(/const empty:State=(.*);/)[1])();
+const state={...base,type:'state',startup:false,page:'broadcast',broadcastCard:'playlist-list1',outputMode:'vmix',vmix:{connected:true,text:'Connected to vMix',programInputKey:'video1',previewInputKey:'video2'},inputs:[{key:'video1',label:'First video'},{key:'video2',label:'Second video'}],slots:[{number:1,language:'Türkçe',sourceLanguage:'EN',input:'video1',inputName:'First video',inputNumber:'1',file:'first.srt',status:'ON AIR',preview:'First subtitle',ready:true,translating:false},{number:2,language:'Türkçe',sourceLanguage:'EN',input:'video2',inputName:'Second video',inputNumber:'2',file:'second.srt',status:'Preview',preview:'Second subtitle',ready:true,translating:false}],playlist:{items:[],active:true,index:0,selectedId:'list1',playingId:'list1',lists:[{id:'list1',name:'Opening',count:2,available:true,videoLabels:['First video','Second video']}]}};
+const server=createServer((request,response)=>{const name=request.url==='/'?'index.html':request.url.slice(1);if(!['index.html','app.js','app.css'].includes(name)){response.writeHead(404).end();return;}response.setHeader('Content-Type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':'text/html');response.end(readFileSync('dist/'+name));});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const executablePath=['C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(existsSync);
+const browser=await chromium.launch({headless:true,executablePath});
+try{
+ const page=await browser.newPage({viewport:{width:1670,height:960}});const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(state=>{window.__state=state;let listener;window.__emit=()=>listener?.({data:window.__state});window.__login=()=>listener?.({data:{type:'login-success'}});window.chrome=window.chrome||{};window.chrome.webview={addEventListener:(_,fn)=>listener=fn,postMessage:message=>{if(window.__dropCommands)return;queueMicrotask(()=>{window.__emit();listener?.({data:{type:'result',id:message.id,ok:true}});});}};},state);
+ await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('.broadcast-scene').first().waitFor();
+ await page.getByRole('button',{name:/Yeni profil oluştur/}).click();
+ await page.getByRole('dialog',{name:'Profil seç'}).waitFor({state:'hidden'});
+ const onAir=page.locator('.broadcast-scene.on-air');
+ assert.equal(await onAir.count(),1);assert.match(await onAir.innerText(),/Opening/);assert.equal(await page.locator('.broadcast-scene.in-preview').count(),0);
+ await page.getByRole('tab',{name:/Altyazı/}).click();assert.equal(await page.locator('tr.on-air').count(),1);assert.equal(await page.locator('tr.in-preview').count(),1);
+ await page.getByRole('tab',{name:/Control/}).click();await page.evaluate(()=>{window.__state.broadcastCard='slot-1';window.__emit();});await onAir.getByText('First video',{exact:true}).waitFor();assert.equal(await onAir.count(),1);
+ await page.evaluate(()=>{window.__state.broadcastCard='playlist-list1';window.__state.playlist.index=1;window.__state.playlist.timing={active:true,totalMs:150000,elapsedMs:80000,remainingMs:70000,currentTitle:'Second video'};window.__state.video={playing:true,durationMs:90000,positionMs:81000,remainingMs:9000,source:'Second video'};window.__emit();});
+ await page.locator('.playback-list-summary').waitFor();assert.deepEqual(await page.locator('.video-metrics strong').allTextContents(),['2:30','1:20','1:10']);await onAir.getByText('2 / 2 · Second video',{exact:true}).waitFor();assert.equal(await page.locator('.end-countdown-glow').count(),0);
+ await page.getByRole('tab',{name:/Altyazı/}).click();assert.equal(await page.locator('.broadcast-monitor-column').isVisible(),false);await page.getByRole('tab',{name:/Oynatma Listesi/}).click();assert.equal(await page.locator('.broadcast-monitor-column').isVisible(),false);await page.getByRole('tab',{name:/Control/}).click();assert.equal(await page.locator('.broadcast-monitor-column').isVisible(),true);
+ await page.evaluate(()=>{window.__state.playlist.timing.remainingMs=9500;window.__emit();});await page.locator('.end-countdown-glow').waitFor();assert.equal(await page.locator('.end-countdown-glow').evaluate(element=>getComputedStyle(element).animationDuration),'1s');
+ await page.evaluate(()=>{window.__state.playlist.timing.remainingMs=0;window.__emit();});await page.locator('.end-countdown-glow').waitFor({state:'detached'});
+ await page.clock.install();await page.evaluate(()=>window.__login());await page.getByRole('dialog').waitFor();await page.clock.fastForward(9000);assert.equal(await page.getByRole('dialog').isVisible(),true);
+ await page.locator('.celebration-backdrop').click({position:{x:3,y:3}});await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').isVisible(),true);
+ await page.getByRole('button',{name:'Hadi başlayalım',exact:true}).click();assert.equal(await page.getByRole('dialog').count(),0);await page.getByRole('tab',{name:/Altyazı/}).click();await page.evaluate(()=>window.__dropCommands=true);await page.getByRole('button',{name:'Girişleri yenile',exact:true}).click();await page.clock.fastForward(120001);await page.getByText(/İşlem yanıt vermedi/).waitFor();assert.deepEqual(errors,[]);
+ console.log('PASS: welcome confirmation, originating card tally, total list timers and progress, preparation panes hide monitors, final warning uses a one-second breath and only total remaining time.');
+}finally{await browser.close();server.close();}

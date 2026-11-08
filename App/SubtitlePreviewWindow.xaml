@@ -1,0 +1,77 @@
+<Window x:Class="VmixSubtitleController.SubtitlePreviewWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="Altyazı önizleme" Width="1180" Height="760" MinWidth="820" MinHeight="550"
+ Background="{StaticResource StudioBase}" Foreground="{StaticResource StudioText}" WindowStartupLocation="CenterOwner">
+ <Window.Resources>
+  <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource StudioText}"/></Style>
+  <Style TargetType="TextBox">
+   <Setter Property="Background" Value="{StaticResource StudioInset}"/><Setter Property="Foreground" Value="{StaticResource StudioText}"/>
+   <Setter Property="CaretBrush" Value="{StaticResource StudioText}"/><Setter Property="BorderBrush" Value="{StaticResource StudioLine}"/>
+   <Setter Property="Padding" Value="8"/><Setter Property="FontSize" Value="14"/>
+  </Style>
+  <Style TargetType="Button" BasedOn="{StaticResource StudioButton}"><Setter Property="Margin" Value="8,0,0,0"/></Style>
+  <Style TargetType="DataGridColumnHeader">
+   <Setter Property="Background" Value="{StaticResource StudioRaised}"/><Setter Property="Foreground" Value="{StaticResource StudioMuted}"/>
+   <Setter Property="Padding" Value="10"/><Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style TargetType="DataGridCell">
+   <Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="{StaticResource StudioText}"/>
+   <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style TargetType="DataGridRow">
+   <Setter Property="Foreground" Value="{StaticResource StudioText}"/>
+   <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#44474B"/></Trigger></Style.Triggers>
+  </Style>
+ </Window.Resources>
+ <Grid Margin="20">
+  <Grid.RowDefinitions>
+   <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/>
+   <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+  </Grid.RowDefinitions>
+  <StackPanel>
+   <TextBlock x:Name="Heading" FontSize="23" FontWeight="SemiBold"/>
+   <TextBlock Text="Çeviri hücresine tıklayarak düzenleyin. Enter: yeni satır. Zaman kodları korunur." Foreground="{StaticResource StudioMuted}" Margin="0,8,0,16"/>
+  </StackPanel>
+  <Grid Grid.Row="1" Margin="0,0,0,12">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBox x:Name="SearchBox" TextChanged="Search_TextChanged" ToolTip="Orijinal veya çevrilmiş metin içinde ara"/>
+   <Button Grid.Column="1" Content="Aramayı temizle" Click="ClearSearch_Click"/>
+  </Grid>
+  <DataGrid x:Name="CueGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+   CanUserReorderColumns="False" CanUserSortColumns="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+   Background="{StaticResource StudioPanel}" Foreground="White" BorderBrush="{StaticResource StudioLine}" HorizontalGridLinesBrush="{StaticResource StudioLine}"
+   RowBackground="{StaticResource StudioPanel}" AlternatingRowBackground="{StaticResource StudioRaised}" SelectionMode="Single" SelectionUnit="FullRow"
+   EnableRowVirtualization="True" SelectionChanged="CueGrid_SelectionChanged">
+   <DataGrid.Columns>
+    <DataGridTextColumn Header="#" Binding="{Binding Number}" Width="50" IsReadOnly="True"/>
+    <DataGridTextColumn Header="Başlangıç → Bitiş" Binding="{Binding Timing}" Width="220" IsReadOnly="True"/>
+    <DataGridTemplateColumn Header="Orijinal" Width="*" IsReadOnly="True">
+     <DataGridTemplateColumn.CellTemplate><DataTemplate>
+      <TextBlock Text="{Binding Original}" TextWrapping="Wrap" Margin="10" Foreground="{StaticResource StudioMuted}"/>
+     </DataTemplate></DataGridTemplateColumn.CellTemplate>
+    </DataGridTemplateColumn>
+    <DataGridTemplateColumn x:Name="TranslationColumn" Header="Çeviri — düzenlenebilir" Width="*">
+     <DataGridTemplateColumn.CellTemplate><DataTemplate>
+      <TextBox Text="{Binding Translated, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+       TextWrapping="Wrap" AcceptsReturn="True" MinHeight="48" Margin="4" VerticalContentAlignment="Center"/>
+     </DataTemplate></DataGridTemplateColumn.CellTemplate>
+    </DataGridTemplateColumn>
+   </DataGrid.Columns>
+  </DataGrid>
+  <Border Grid.Row="3" Background="{StaticResource StudioRaised}" BorderBrush="{StaticResource StudioLine}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,12,0,12">
+   <StackPanel>
+    <TextBlock Text="SEÇİLİ ALTYAZI" FontSize="11" Foreground="{StaticResource StudioMuted}" Margin="0,0,0,8"/>
+    <TextBlock x:Name="SelectedText" FontSize="21" TextWrapping="Wrap" TextAlignment="Center" MinHeight="36"/>
+   </StackPanel>
+  </Border>
+  <Grid Grid.Row="4">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock x:Name="EditorStatus" Foreground="{StaticResource StudioMuted}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,0"/>
+   <StackPanel Grid.Column="1" Orientation="Horizontal">
+    <Button Content="SRT kaydet" Click="Save_Click"/>
+    <Button x:Name="ApplyButton" Content="Slota uygula" Click="Apply_Click" Style="{StaticResource StudioPrimaryButton}" Margin="8,0,0,0"/>
+   </StackPanel>
+  </Grid>
+ </Grid>
+</Window>

@@ -1,0 +1,10 @@
+import {createRequire} from 'node:module';
+import {resolve} from 'node:path';
+import {writeFileSync,mkdirSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const modules=resolve(process.env.IM_TOO_LAZY_UI_MODULES||'node_modules');
+const {build}=createRequire(import.meta.url)(resolve(modules,'esbuild'));
+mkdirSync('dist',{recursive:true});
+await build({entryPoints:['src/main.tsx'],nodePaths:[modules],bundle:true,minify:true,outfile:'dist/app.js',target:'chrome110',define:{'process.env.NODE_ENV':'"production"'},tsconfig:'tsconfig.json',legalComments:'eof'});
+execFileSync(process.execPath,[resolve(modules,'@tailwindcss/cli/dist/index.mjs'),'-i','src/style.css','-o','dist/app.css','--minify'],{stdio:'inherit'});
+writeFileSync('dist/index.html',`<!doctype html><html lang="tr" data-theme="graphite" class="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'"><title>im too lazy</title><link rel="stylesheet" href="app.css"></head><body><div id="root"></div><script src="app.js"></script></body></html>`);
