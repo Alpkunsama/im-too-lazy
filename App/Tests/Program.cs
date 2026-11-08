@@ -21,6 +21,32 @@ Check(ReleaseUpdate.Parse(Manifest("0.0074", "https://name@releases.example/setu
 Check(ReleaseUpdate.Parse("invalid JSON", "0.0073") == null, "Malformed manifest is ignored");
 Check(await ReleaseUpdate.CheckAsync(null, "0.0073", default) == null, "Missing feed does not request updates");
 
+static string GitHubRelease(string url, string? digest = null, bool prerelease = false) =>
+    JsonSerializer.Serialize(new
+    {
+        tag_name = "v0.0078", draft = false, prerelease, body = "Sürüm notları",
+        assets = new[] { new { name = "im-too-lazy-0.0078-setup.exe", state = "uploaded", size = 1000, browser_download_url = url, digest } }
+    });
+
+const string installer = "https://github.com/Alpkunsama/im-too-lazy/releases/download/v0.0078/im-too-lazy-0.0078-setup.exe";
+var digest = new string('a', 64);
+var github = GitHubRelease(installer, "sha256:" + digest);
+Check(ReleaseUpdate.ParseGitHubRelease(github, "0.0077") is { Version: "0.0078", Size: 1000, Notes: "Sürüm notları" } release &&
+    release.Sha256 == digest, "GitHub update uses release notes and installer checksum");
+Check(ReleaseUpdate.ParseGitHubRelease(github, "0.0078") == null, "Same GitHub release does not offer an update");
+foreach (var (json, name) in new[]
+{
+    (GitHubRelease(installer), "Missing GitHub digest rejected"),
+    (GitHubRelease(installer.Replace("Alpkunsama", "other-owner"), "sha256:" + digest), "Other GitHub repositories rejected"),
+    (GitHubRelease(installer, "sha256:" + digest, prerelease: true), "GitHub prereleases rejected")
+})
+{
+    var rejected = false;
+    try { ReleaseUpdate.ParseGitHubRelease(json, "0.0077"); }
+    catch (InvalidDataException) { rejected = true; }
+    Check(rejected, name);
+}
+
 var cues = SrtParser.Parse("1\r\n00:00:01,000 --> 00:00:02,500\r\nİlk satır\r\nİkinci satır\r\n");
 Check(cues.Count == 1 && cues[0].End.TotalMilliseconds == 2500 &&
     cues.SequenceEqual(SrtParser.Parse(SrtParser.Serialize(cues))), "SRT timing and multiline Unicode round trip");

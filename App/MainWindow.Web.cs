@@ -81,6 +81,7 @@ public partial class MainWindow
             switch (command)
             {
                 case "ready": _webReady = true; WebFailure.Visibility = Visibility.Collapsed; break;
+                case "checkUpdates": _ = CheckForUpdateAsync(manual: true); break;
                 case "chooseOutputMode":
                     if (Text("target") is not ("obs" or "vmix")) throw new ArgumentException("OBS veya vMix seçin.");
                     if (_refreshing) throw new InvalidOperationException("Bağlantı işlemi sürerken yayın sistemi değiştirilemez.");
@@ -607,7 +608,7 @@ public partial class MainWindow
             var playlistTiming = PlaylistClock.Calculate(_playlistQueue,durations,_playlistIndex,_videoPositionMilliseconds);
             var playlistTimingActive = broadcastCardIsActive && _playingPlaylistId != null && _broadcastCardId == $"playlist-{_playingPlaylistId}";
             var state = new {
-                type="state",profileUi=_profileUi,profileUiRevision=_profileUiRevision,translationPreset=_preferences.TranslationPreset,appVersion=AppVersion.Current,startup=_startupGate,startupOutputChosen=_startupOutputChosen,loginBusy=_signInCancellation!=null,languages=AppPreferences.Languages.Append(_preferences.TargetLanguage).Distinct().Select(x => new { key=x,label=x }).ToArray(),page=_page,theme=_webTheme,savedTheme=_preferences.ColorTheme,language=_preferences.TargetLanguage,
+                type="state",updateBusy=_updateBusy,updateStatus=_updateStatus,profileUi=_profileUi,profileUiRevision=_profileUiRevision,translationPreset=_preferences.TranslationPreset,appVersion=AppVersion.Current,startup=_startupGate,startupOutputChosen=_startupOutputChosen,loginBusy=_signInCancellation!=null,languages=AppPreferences.Languages.Append(_preferences.TargetLanguage).Distinct().Select(x => new { key=x,label=x }).ToArray(),page=_page,theme=_webTheme,savedTheme=_preferences.ColorTheme,language=_preferences.TargetLanguage,
                 status=GlobalStatus.Text,program=ProgramText.Text,api=ApiStatusText.Text,appLanguage=_preferences.InterfaceLanguage,
                 vmix=new { hosts=_vmixFoundHosts,scanning=_vmixScanning,address=_apiBase ?? "",connected,text=ConnectionText.Text,programInputKey=_vmixProgramInputKey,previewInputKey=_vmixPreviewInputKey },
                 outputMode=_outputMode,

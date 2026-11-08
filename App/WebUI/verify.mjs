@@ -34,6 +34,41 @@ check(await page.getByRole('combobox',{name:'Oynatma listesi seç'}).getByText('
 await checkRefreshPosition();
 await refresh.click();
 check(await page.evaluate(()=>window.__commands.some(m=>m.command==='refresh')),'Shared refresh sends the vMix command');
+await page.setViewportSize({width:1366,height:768});
+for(const {tab,panel,list,row} of [
+  {tab:/Oynatma Listesi/,panel:'#playlist-panel',list:'.video-playlist',row:'.video-playlist-item'},
+  {tab:/Altyazı/,panel:'#workspace-panel',list:'.table-scroll',row:'.slot-row'}
+]){
+  await page.getByRole('tab',{name:tab}).click();
+  const card=page.locator(panel).locator('[data-slot="card"]');
+  const scroller=card.locator(list);
+  const before=await card.boundingBox();
+  const toolbar=await page.locator('.broadcast-toolbar').boundingBox();
+  check(before&&toolbar&&before.y-toolbar.y-toolbar.height<32,'Preparation panel starts below toolbar '+panel);
+  await page.evaluate(panel=>{
+    const state=window.__state;
+    window.__smallPreparationList=panel==='#workspace-panel'?state.slots:state.playlist.items;
+    const source=window.__smallPreparationList;
+    const rows=Array.from({length:32},(_,i)=>({...source[i%source.length],number:i+1}));
+    if(panel==='#workspace-panel')state.slots=rows;
+    else state.playlist.items=rows;
+    window.__emit();
+  },panel);
+  await scroller.locator(row).nth(31).waitFor({state:'attached'});
+  const after=await card.boundingBox();
+  check(after&&Math.abs(before.y-after.y)<1&&Math.abs(before.height-after.height)<1,'Adding rows preserves panel geometry '+panel);
+  check(await scroller.evaluate(element=>{
+    element.scrollTop=element.scrollHeight;
+    return element.scrollTop>0&&element.scrollHeight-element.scrollTop-element.clientHeight<2;
+  }),'Added rows scroll inside the panel '+panel);
+  await page.evaluate(panel=>{
+    if(panel==='#workspace-panel')window.__state.slots=window.__smallPreparationList;
+    else window.__state.playlist.items=window.__smallPreparationList;
+    window.__emit();
+  },panel);
+}
+await page.setViewportSize({width:1920,height:1080});
+await page.getByRole('tab',{name:/Oynatma Listesi/}).click();
 await page.getByRole('button',{name:'Sırayla oynat',exact:true}).click();
 await page.getByRole('tab',{name:/Control/}).click();await checkRefreshPosition();
 const listCard=page.locator('.broadcast-scene').filter({hasText:'Opening'});

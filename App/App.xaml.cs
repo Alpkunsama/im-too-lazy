@@ -1,16 +1,18 @@
+using System.Diagnostics;
 using System.Windows;
 
 namespace VmixSubtitleController;
 
 internal static class AppVersion
 {
-    public const string Current = "0.0075";
+    public const string Current = "0.0077";
 }
 
 public partial class App : Application
 {
     private Mutex? _instance;
     private bool _ownsInstance;
+    internal string? UpdateInstaller { get; set; }
     protected override void OnStartup(StartupEventArgs e)
     {
         _instance = new Mutex(false, "Local\\ImTooLazySubtitleController");
@@ -25,6 +27,13 @@ public partial class App : Application
         if (_ownsInstance) _instance?.ReleaseMutex();
         _instance?.Dispose();
         base.OnExit(e);
+        if (UpdateInstaller is not { } installer) return;
+        try { Process.Start(new ProcessStartInfo(installer) { UseShellExecute = true }); }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Kurucu başlatılamadı. Dosyayı elle açabilirsiniz.\n\n{installer}\n\n{ex.Message}",
+                "im too lazy", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     public App()
