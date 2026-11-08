@@ -19,7 +19,7 @@ public sealed record AppPreferences
         _=>throw new ArgumentException("Geçersiz çeviri preseti.")
     };
     public string TargetLanguage { get; init; } = "Türkçe";
-    public string InterfaceLanguage { get; init; } = "tr";
+    public string InterfaceLanguage { get; init; } = "en";
     public string? ModelSlug { get; init; }
     public bool ThemeEnabled { get; init; } = false;
     public bool DarkMode { get; init; } = true;

@@ -414,6 +414,7 @@ public partial class MainWindow
                     preferences.Save(); _preferences = preferences; SetWebTheme(theme,false); UpdateChatGptStatus(); SettingsStatusText.Text = _preferences.InterfaceLanguage == "en" ? "Settings saved." : "Ayarlar kaydedildi."; break;
                 case "appLanguage":
                     _preferences = _preferences with { InterfaceLanguage = ValidateInterfaceLanguage(Text("language")) };
+                    UpdateChatGptStatus();
                     _preferences.Save(); SettingsStatusText.Text = _preferences.InterfaceLanguage == "en" ? "Language saved." : "Uygulama dili kaydedildi."; break;
                 case "profileSave":
                     SettingsLanguageBox.Text = Text("language");

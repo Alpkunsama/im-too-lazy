@@ -15,8 +15,11 @@ public partial class MainWindow
     {
         if (_closed) return;
         TargetLanguageText.Text = "Hedef: " + _preferences.TargetLanguage + " • Ayarlar'dan değiştir";
+        var english = _preferences.InterfaceLanguage == "en";
         ChatGptStatusText.Text = _chatGptAccount.CanTranslate ? _chatGptAccount.DisplayName + " • Using ChatGPT plan" :
-            _chatGptAccount.HasProfile ? "ChatGPT bağlı • Plan kullanım izni gerekiyor" : "ChatGPT bağlı değil • SRT yüklerken giriş yapabilirsiniz";
+            _chatGptAccount.HasProfile
+                ? (english ? "ChatGPT connected • Plan permission required" : "ChatGPT bağlı • Plan kullanım izni gerekiyor")
+                : (english ? "ChatGPT not connected • You can sign in when loading an SRT" : "ChatGPT bağlı değil • SRT yüklerken giriş yapabilirsiniz");
     }
 
     private async Task<bool> EnsureChatGptConnectedAsync()
