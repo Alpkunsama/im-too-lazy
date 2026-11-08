@@ -28,6 +28,8 @@ $versionProperties = @(
     "-p:FileVersion=$fileVersion"
     "-p:InformationalVersion=$appVersion"
     '-p:IncludeSourceRevisionInInformationalVersion=false'
+    '-p:DebugType=None'
+    '-p:DebugSymbols=false'
 )
 
 function Assert-ProductMetadata([string] $Path) {
