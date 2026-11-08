@@ -5,7 +5,7 @@ namespace VmixSubtitleController;
 
 internal static class AppVersion
 {
-    public const string Current = "0.0079";
+    public const string Current = "0.0080";
 }
 
 public partial class App : Application

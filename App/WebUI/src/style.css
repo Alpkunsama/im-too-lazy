@@ -492,10 +492,9 @@ tr.selected{background:var(--studio-hover)}
 
 main>.workspace-header,.shell.broadcast-page .workspace-header{
  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,400px) minmax(0,1fr);
- grid-template-areas:"title status search";align-items:center;gap:12px;
+ grid-template-areas:"title status .";align-items:center;gap:12px;
 }
 .workspace-header .header-title{grid-area:title;min-width:0}
-.workspace-header .header-right{grid-area:search;justify-self:end;width:min(260px,100%);min-width:0}
 .workspace-header .connection-badges{grid-area:status;justify-content:center;align-items:center;gap:6px;min-width:0}
 .workspace-header .connection-badges span{white-space:nowrap}
 .update-indicator{
@@ -545,9 +544,9 @@ main>.workspace-header,.shell.broadcast-page .workspace-header{
 
 @media(max-width:1250px){
  main>.workspace-header,.shell.broadcast-page .workspace-header{
-  grid-template-columns:minmax(0,1fr) minmax(0,260px);grid-template-areas:"status status" "title search";
+  grid-template-columns:minmax(0,1fr);grid-template-areas:"status" "title";
   row-gap:8px;
  }
  main>.workspace-header:not(:has(.connection-badges span)),
- .shell.broadcast-page .workspace-header:not(:has(.connection-badges span)){grid-template-areas:"title search"}
+ .shell.broadcast-page .workspace-header:not(:has(.connection-badges span)){grid-template-areas:"title"}
 }
