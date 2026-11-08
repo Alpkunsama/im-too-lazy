@@ -427,3 +427,7 @@ Source: https://github.com/openmediatransport/libomtnet
 Version: v1.0.0.19
 License: MIT (see ThirdParty/OMT/LICENSE.txt)
 Included binaries: libomtnet.dll and libvmx.dll for Windows x64.
+
+Cat photograph used for the application icon
+The photograph is separate from the project's MIT-licensed source code.
+Its original source and license have not been verified.

@@ -1,6 +1,6 @@
 import {chromium} from '@playwright/test';
 import {createServer} from 'node:http';import {readFileSync,mkdirSync} from 'node:fs';import {strict as assert} from 'node:assert';
-const server=createServer((q,r)=>{const name=q.url==='/'?'index.html':q.url.slice(1);if(!['index.html','app.js','app.css'].includes(name)){r.writeHead(404).end();return;}r.setHeader('Content-Type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':'text/html');r.end(readFileSync('dist/'+name));});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const server=createServer((q,r)=>{const name=q.url==='/'?'index.html':q.url.slice(1);if(!['index.html','app.js','app.css','brand-cat.png'].includes(name)){r.writeHead(404).end();return;}r.setHeader('Content-Type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':name.endsWith('.png')?'image/png':'text/html');r.end(readFileSync('dist/'+name));});await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({executablePath:process.env.IM_LAZY_CHROME||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});let checks=0;
 const check=(v,n)=>{assert.ok(v,n);checks++;console.log('PASS: '+n);};
 try{const page=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[];page.on('pageerror',e=>errors.push(e.message));

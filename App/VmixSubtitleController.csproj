@@ -15,7 +15,7 @@
   <ItemGroup>
     <Content Include="../Titles/im too lazy - Subtitle Auto Background.xaml" Link="Titles/im too lazy - Subtitle Auto Background.xaml" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Resource Include="app.ico" />
-    <Resource Include="WebUI/dist/index.html;WebUI/dist/app.js;WebUI/dist/app.css" />
+    <Resource Include="WebUI/dist/index.html;WebUI/dist/app.js;WebUI/dist/app.css;WebUI/dist/brand-cat.png" />
     <None Remove="WebUI/node_modules/**/*" />
     <Compile Remove="WebUI/**/*" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />

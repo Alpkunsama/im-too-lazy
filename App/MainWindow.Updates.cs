@@ -10,22 +10,24 @@ public partial class MainWindow
     private bool _updateChecked;
     private bool _updateBusy;
     private string _updateStatus = "";
+    private ReleaseUpdate? _availableUpdate;
 
-    private async Task CheckForUpdateAsync(bool manual = false)
+    private async Task CheckForUpdateAsync(bool manual = false, ReleaseUpdate? knownRelease = null)
     {
         if (_updateBusy || (!manual && _updateChecked)) return;
         _updateChecked = true;
         _updateBusy = true;
-        SetUpdateStatus("Güncellemeler denetleniyor…");
+        if (knownRelease == null) SetUpdateStatus("Güncellemeler denetleniyor…");
         var feedUrl = typeof(App).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .FirstOrDefault(metadata => metadata.Key == "UpdateFeedUrl")?.Value;
         var installing = false;
         try
         {
-            var update = string.IsNullOrWhiteSpace(feedUrl)
+            var update = knownRelease ?? (string.IsNullOrWhiteSpace(feedUrl)
                 ? await ReleaseUpdate.CheckGitHubAsync(AppVersion.Current, _lifetime.Token)
-                : await ReleaseUpdate.CheckAsync(feedUrl, AppVersion.Current, _lifetime.Token);
+                : await ReleaseUpdate.CheckAsync(feedUrl, AppVersion.Current, _lifetime.Token));
             if (_closed) return;
+            _availableUpdate = update;
             if (update == null)
             {
                 SetUpdateStatus($"Güncelleme bulunamadı. Yüklü sürüm {AppVersion.Current}.");
