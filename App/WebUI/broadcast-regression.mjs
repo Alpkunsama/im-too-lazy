@@ -4,7 +4,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import assert from 'node:assert/strict';
 const source=readFileSync('src/main.tsx','utf8');
 const base=Function('return '+source.match(/const empty:State=(.*);/)[1])();
-const state={...base,type:'state',appLanguage:'tr',startup:false,page:'broadcast',broadcastCard:'playlist-list1',outputMode:'vmix',vmix:{connected:true,text:'Connected to vMix',programInputKey:'video1',previewInputKey:'video2'},inputs:[{key:'video1',label:'First video'},{key:'video2',label:'Second video'}],slots:[{number:1,language:'Türkçe',sourceLanguage:'EN',input:'video1',inputName:'First video',inputNumber:'1',file:'first.srt',status:'ON AIR',preview:'First subtitle',ready:true,translating:false},{number:2,language:'Türkçe',sourceLanguage:'EN',input:'video2',inputName:'Second video',inputNumber:'2',file:'second.srt',status:'Preview',preview:'Second subtitle',ready:true,translating:false}],playlist:{items:[],active:true,index:0,selectedId:'list1',playingId:'list1',lists:[{id:'list1',name:'Opening',count:2,available:true,videoLabels:['First video','Second video']}]}};
+const state={...base,type:'state',controlCardOrder:['slot-1','slot-2','playlist-list1'],appLanguage:'tr',startup:false,page:'broadcast',broadcastCard:'playlist-list1',programCardCut:1,outputMode:'vmix',vmix:{connected:true,text:'Connected to vMix',programInputKey:'video1',previewInputKey:'video2'},inputs:[{key:'video1',label:'First video'},{key:'video2',label:'Second video'}],slots:[{number:1,language:'Türkçe',sourceLanguage:'EN',input:'video1',inputName:'First video',inputNumber:'1',file:'first.srt',status:'ON AIR',preview:'First subtitle',ready:true,translating:false},{number:2,language:'Türkçe',sourceLanguage:'EN',input:'video2',inputName:'Second video',inputNumber:'2',file:'second.srt',status:'Preview',preview:'Second subtitle',ready:true,translating:false}],playlist:{items:[],active:true,index:0,selectedId:'list1',playingId:'list1',lists:[{id:'list1',name:'Opening',count:2,available:true,videoLabels:['First video','Second video']}]}};
 const server=createServer((request,response)=>{const name=request.url==='/'?'index.html':request.url.slice(1);if(!['index.html','app.js','app.css','brand-cat.png'].includes(name)){response.writeHead(404).end();return;}response.setHeader('Content-Type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':name.endsWith('.png')?'image/png':'text/html');response.end(readFileSync('dist/'+name));});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const executablePath=['C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(existsSync);
@@ -17,10 +17,35 @@ try{
  await page.getByRole('dialog',{name:'Profil seç'}).waitFor({state:'hidden'});
  const onAir=page.locator('.broadcast-scene.on-air');
  assert.equal(await onAir.count(),1);assert.match(await onAir.innerText(),/Opening/);assert.equal(await page.locator('.broadcast-scene.in-preview').count(),0);
+ await page.evaluate(()=>{
+   window.__state.playlist.playingId=null;window.__state.playlist.index=-1;window.__emit();
+ });
+ await onAir.getByText('2 video',{exact:true}).waitFor();
+ assert.equal(await onAir.locator('.program-card-glow-animated').count(),0);
+ await page.evaluate(()=>{
+   window.__state.broadcastCard=null;window.__emit();
+ });
+ await onAir.waitFor({state:'detached'});
+ await page.evaluate(()=>{
+   window.__state.broadcastCard='playlist-list1';window.__state.playlist.playingId='list1';window.__state.playlist.index=0;window.__emit();
+ });
+ await onAir.getByText('1 / 2 · First video',{exact:true}).waitFor();
+ assert.equal(await onAir.locator('.program-card-glow-animated').count(),0);
  await page.getByRole('tab',{name:/Altyazı/}).click();assert.equal(await page.locator('tr.on-air').count(),1);assert.equal(await page.locator('tr.in-preview').count(),1);
- await page.getByRole('tab',{name:/Control/}).click();await page.evaluate(()=>{window.__state.broadcastCard='slot-1';window.__emit();});await onAir.getByText('First video',{exact:true}).waitFor();assert.equal(await onAir.count(),1);
- await page.evaluate(()=>{window.__state.broadcastCard='playlist-list1';window.__state.playlist.index=1;window.__state.playlist.timing={active:true,totalMs:150000,elapsedMs:80000,remainingMs:70000,currentTitle:'Second video'};window.__state.video={playing:true,durationMs:90000,positionMs:81000,remainingMs:9000,source:'Second video'};window.__emit();});
+ await page.getByRole('tab',{name:/Control/}).click();await page.evaluate(()=>{window.__state.broadcastCard='slot-1';window.__state.programCardCut++;window.__emit();});await onAir.getByText('First video',{exact:true}).waitFor();assert.equal(await onAir.count(),1);
+ const animatedGlow=onAir.locator('.program-card-glow-animated');
+ await animatedGlow.waitFor();
+ assert.equal(await animatedGlow.evaluate(element=>getComputedStyle(element).animationDuration),'0.4s');
+ await page.evaluate(()=>{window.__state.broadcastCard='playlist-list1';window.__state.programCardCut++;window.__emit();});
+ await onAir.getByText('Opening',{exact:true}).waitFor();
+ const previousGlow=await animatedGlow.elementHandle();
+ const playlistCardBox=await onAir.boundingBox();
+ await page.evaluate(()=>{window.__state.broadcastCard='playlist-list1';window.__state.programCardCut++;window.__state.playlist.index=1;window.__state.playlist.timing={active:true,totalMs:150000,elapsedMs:80000,remainingMs:70000,currentTitle:'Second video'};window.__state.video={playing:true,durationMs:90000,positionMs:81000,remainingMs:9000,source:'Second video'};window.__emit();});
  await page.locator('.playback-list-summary').waitFor();assert.deepEqual(await page.locator('.video-metrics strong').allTextContents(),['2:30','1:20','1:10']);await onAir.getByText('2 / 2 · Second video',{exact:true}).waitFor();assert.equal(await page.locator('.end-countdown-glow').count(),0);
+ assert.equal(await previousGlow.evaluate(element=>element.isConnected),false);
+ assert.deepEqual(await onAir.boundingBox(),playlistCardBox);
+ await animatedGlow.waitFor({state:'detached'});
+ assert.equal(await onAir.locator('.program-card-glow g').evaluate(element=>getComputedStyle(element).stroke),'rgb(236, 101, 120)');
  await page.getByRole('tab',{name:/Altyazı/}).click();assert.equal(await page.locator('.broadcast-monitor-column').isVisible(),false);await page.getByRole('tab',{name:/Oynatma Listesi/}).click();assert.equal(await page.locator('.broadcast-monitor-column').isVisible(),false);await page.getByRole('tab',{name:/Control/}).click();assert.equal(await page.locator('.broadcast-monitor-column').isVisible(),true);
  await page.evaluate(()=>{window.__state.playlist.timing.remainingMs=9500;window.__emit();});await page.locator('.end-countdown-glow').waitFor();assert.equal(await page.locator('.end-countdown-glow').evaluate(element=>getComputedStyle(element).animationDuration),'1s');
  await page.evaluate(()=>{window.__state.playlist.timing.remainingMs=0;window.__emit();});await page.locator('.end-countdown-glow').waitFor({state:'detached'});

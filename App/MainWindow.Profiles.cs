@@ -108,6 +108,7 @@ public partial class MainWindow
             ObsSlotInputs = new Dictionary<int, string?>(_obsSlotInputKeys),
             Glossary = _glossaryEntries.ToList(),
             ControlCardOrder=_controlCardOrder.ToList(),
+            ExplicitControlCards=true,
             Playlists = _playlists.ToList()
         };
     }
@@ -195,7 +196,7 @@ public partial class MainWindow
         _preferences = profile.Preferences;
         _glossaryEntries = profile.Glossary.ToList();
         _playlists = profile.Playlists.ToList();
-        _controlCardOrder.Clear();_controlCardOrder.AddRange(profile.ControlCardOrder);
+        RestoreControlCards(profile);
         _selectedPlaylistId = _playlists.FirstOrDefault()?.Id;
         ResetPlaylistPlayback();
         _preferences.Save();

@@ -310,14 +310,18 @@ public partial class MainWindow
                     }
                     else throw new InvalidOperationException("Önce OBS veya vMix seçin.");
                     ResetPlaylistPlayback();
-                    _broadcastCardId = $"slot-{outputSlot.Number}";
-                    _broadcastCardInputKey = outputSlot.InputKey;
+                    SetBroadcastCardOnOutput($"slot-{outputSlot.Number}", outputSlot.InputKey);
                     break;
                 case "controlSetOrder": SetControlCardOrder(m.GetProperty("ids").Deserialize<string[]>()??Array.Empty<string>());break;
+                case "controlSetCardVisibility":
+                    SetControlCardVisibility(Text("cardId"), m.GetProperty("visible").GetBoolean());
+                    break;
                 case "controlMoveCard": MoveControlCard(Text("source"),Text("target"));break;
                 case "controlAddVideo":
                     var singleInput=_inputs.FirstOrDefault(x=>x.Key==Text("key")&&x.Type.Equals("Video",StringComparison.OrdinalIgnoreCase)) ?? throw new InvalidOperationException("Bir video seçin.");
-                    _playlists.Add(new VideoPlaylist(Guid.NewGuid().ToString("N"),singleInput.Title.Length>120?singleInput.Title[..120]:singleInput.Title,_outputMode,new(){new PlaylistVideo(singleInput.Key,singleInput.Display)}){SingleVideo=true});
+                    var singleVideo = new VideoPlaylist(Guid.NewGuid().ToString("N"),singleInput.Title.Length>120?singleInput.Title[..120]:singleInput.Title,_outputMode,new(){new PlaylistVideo(singleInput.Key,singleInput.Display)}){SingleVideo=true};
+                    _playlists.Add(singleVideo);
+                    _controlCardOrder.Add($"playlist-{singleVideo.Id}");
                     break;
                 case "controlPrepareSlot": await RunControlActionAsync("slot",Number("slot").ToString());break;
                 case "controlPrepareList": await RunControlActionAsync("list",Text("listId"));break;
@@ -338,6 +342,7 @@ public partial class MainWindow
                 case "playlistDelete":
                     var deletedPlaylist = SelectedPlaylist();
                     if (_playingPlaylistId == deletedPlaylist.Id) ResetPlaylistPlayback();
+                    _controlCardOrder.Remove($"playlist-{deletedPlaylist.Id}");
                     _playlists.Remove(deletedPlaylist); _selectedPlaylistId = _playlists.FirstOrDefault(list => list.OutputMode == _outputMode)?.Id;
                     break;
                 case "playlistAdd":
@@ -353,7 +358,11 @@ public partial class MainWindow
                     var editIndex = Number("index");
                     if (editIndex < 0 || editIndex >= editedPlaylist.Videos.Count) throw new InvalidOperationException("Video satırı bulunamadı.");
                     if (_playingPlaylistId == editedPlaylist.Id) ResetPlaylistPlayback();
-                    if (command == "playlistRemove") editedPlaylist.Videos.RemoveAt(editIndex);
+                    if (command == "playlistRemove")
+                    {
+                        editedPlaylist.Videos.RemoveAt(editIndex);
+                        if (editedPlaylist.Videos.Count == 0) _controlCardOrder.Remove($"playlist-{editedPlaylist.Id}");
+                    }
                     else
                     {
                         var destination = editIndex + Number("direction");
@@ -502,15 +511,15 @@ public partial class MainWindow
         ? value.Trim() : throw new InvalidOperationException("Liste adı 1 ile 120 karakter arasında olmalı.");
     private void ResetPlaylistPlayback()
     { _preparedControlCard=null; _playlistActive = false; _playlistQueue.Clear(); _playlistIndex = -1; _playingPlaylistId = null; }
-    private async Task PlayPlaylistItemAsync(int index,bool prepareOnly=false)
+    private async Task PlayPlaylistItemAsync(int index,bool prepareOnly=false,int? slotNumber=null)
     {
-        if(!prepareOnly)_preparedControlCard=null;
         if (index < 0 || index >= _playlistQueue.Count) throw new ArgumentOutOfRangeException(nameof(index));
         var key = _playlistQueue[index];
         var input = _inputs.FirstOrDefault(item => item.Key.Equals(key,StringComparison.OrdinalIgnoreCase)
             && item.Type.Equals("Video",StringComparison.OrdinalIgnoreCase))
             ?? throw new InvalidOperationException("Listede bulunan video kaynağı artık mevcut değil. Kaynakları yenileyin.");
         if (_refreshing) throw new InvalidOperationException("Bağlantı yenilenirken video başlatılamaz.");
+        _preparedControlCard = null;
         _refreshing = true;
         try
         {
@@ -518,14 +527,36 @@ public partial class MainWindow
             if (_outputMode == "vmix")
             {
                 if (string.IsNullOrWhiteSpace(_apiBase) || string.IsNullOrWhiteSpace(input.Number)) throw new InvalidOperationException("Önce vMix’e bağlanıp video kaynaklarını yenileyin.");
-                using var pause=await _http.GetAsync($"{_apiBase.TrimEnd('/')}/?Function=Pause&Input={Uri.EscapeDataString(input.Number)}",_lifetime.Token);pause.EnsureSuccessStatusCode();
-                using var rewind = await _http.GetAsync($"{_apiBase.TrimEnd('/')}/?Function=SetPosition&Input={Uri.EscapeDataString(input.Number)}&Value=0",_lifetime.Token);
-                rewind.EnsureSuccessStatusCode();
-                using var response = await _http.GetAsync($"{_apiBase.TrimEnd('/')}/?Function=Cut&Input={Uri.EscapeDataString(input.Number)}",_lifetime.Token);
-                response.EnsureSuccessStatusCode();
-                using var play = await _http.GetAsync($"{_apiBase.TrimEnd('/')}/?Function={(prepareOnly?"Pause":"Play")}&Input={Uri.EscapeDataString(input.Number)}",_lifetime.Token);
-                play.EnsureSuccessStatusCode();
-                if(prepareOnly){using var reset=await _http.GetAsync($"{_apiBase.TrimEnd('/')}/?Function=SetPosition&Input={Uri.EscapeDataString(input.Number)}&Value=0",_lifetime.Token);reset.EnsureSuccessStatusCode();}
+                var api = _apiBase.TrimEnd('/');
+                var inputId = Uri.EscapeDataString(input.Key);
+                async Task Send(string function, CancellationToken token, string value = "")
+                {
+                    using var response = await _http.GetAsync($"{api}/?Function={function}&Input={inputId}{value}", token);
+                    response.EnsureSuccessStatusCode();
+                }
+                async Task Cue(CancellationToken token)
+                {
+                    await Send("Pause", token);
+                    await Send("SetPosition", token, "&Value=0");
+                }
+                await Cue(_lifetime.Token);
+                await Send("Cut", _lifetime.Token);
+                if (!prepareOnly) await Send("Play", _lifetime.Token);
+                else
+                {
+                    await Cue(_lifetime.Token);
+                    await PreparedPlayback.ConfirmAsync(async token =>
+                    {
+                        var xml = XDocument.Parse(await _http.GetStringAsync(api + "/", token));
+                        var target = xml.Descendants("input").FirstOrDefault(item => (string?)item.Attribute("key") == input.Key);
+                        if (target == null || (string?)target.Attribute("number") != xml.Root?.Element("active")?.Value)
+                            return PreparedMediaState.Waiting;
+                        return string.Equals((string?)target.Attribute("state"), "Paused", StringComparison.OrdinalIgnoreCase) &&
+                            double.TryParse((string?)target.Attribute("position"), System.Globalization.CultureInfo.InvariantCulture, out var position) &&
+                            PreparedPlayback.IsAtStart(position)
+                            ? PreparedMediaState.PausedAtStart : PreparedMediaState.NeedsPause;
+                    }, (_, token) => Cue(token), _lifetime.Token);
+                }
             }
             else if (_outputMode == "obs")
             {
@@ -534,17 +565,24 @@ public partial class MainWindow
                 var items = await _obsClient.GetSceneItemsAsync(scene,_lifetime.Token);
                 var selected = items.FirstOrDefault(item => item.Name.Equals(input.Key,StringComparison.OrdinalIgnoreCase));
                 if (selected == null) throw new InvalidOperationException($"'{input.Title}' kaynağı OBS’nin etkin program sahnesinde değil. Kaynağı OBS sahnesine ekleyip tekrar deneyin.");
+                if (prepareOnly)
+                {
+                    var status = await _obsClient.GetMediaStatusAsync(input.Key, _lifetime.Token);
+                    if (status.State == "OBS_MEDIA_STATE_PLAYING")
+                        await _obsClient.PauseMediaInputAsync(input.Key, _lifetime.Token);
+                    else if (status.State == "OBS_MEDIA_STATE_PAUSED" && status.PositionMilliseconds is > 40)
+                        await _obsClient.RewindMediaAsync(input.Key, _lifetime.Token);
+                }
                 var mediaNames = _inputs.Where(item => item.Type.Equals("Video",StringComparison.OrdinalIgnoreCase)).Select(item => item.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in items.Where(item => mediaNames.Contains(item.Name) && item.Id != selected.Id && item.Enabled))
                     await _obsClient.SetSceneItemEnabledAsync(scene,item.Id,false,_lifetime.Token);
                 if (!selected.Enabled) await _obsClient.SetSceneItemEnabledAsync(scene,selected.Id,true,_lifetime.Token);
-                await _obsClient.RestartMediaInputAsync(input.Key,_lifetime.Token);
-                if(prepareOnly)await _obsClient.PauseAndRewindMediaAsync(input.Key,_lifetime.Token);
+                if (!prepareOnly) await _obsClient.RestartMediaInputAsync(input.Key, _lifetime.Token);
+                else await ConfirmObsPreparedAsync(_obsClient, scene, selected.Id, input.Key);
             }
             else throw new InvalidOperationException("Önce OBS veya vMix seçin.");
-            _broadcastCardId = $"playlist-{_playingPlaylistId}";
-            _broadcastCardInputKey = input.Key;
-            _playlistIndex = index;
+            SetBroadcastCardOnOutput(slotNumber is int number ? $"slot-{number}" : $"playlist-{_playingPlaylistId}", input.Key);
+            _playlistIndex = slotNumber.HasValue ? -1 : index;
             _playlistTransitionUntil = DateTime.UtcNow.AddSeconds(2);
             _videoSource = input.Title;
             _videoPositionMilliseconds = 0;
@@ -614,7 +652,7 @@ public partial class MainWindow
                 status=GlobalStatus.Text,program=ProgramText.Text,api=ApiStatusText.Text,appLanguage=_preferences.InterfaceLanguage,
                 vmix=new { hosts=_vmixFoundHosts,scanning=_vmixScanning,address=_apiBase ?? "",connected,text=ConnectionText.Text,programInputKey=_vmixProgramInputKey,previewInputKey=_vmixPreviewInputKey },
                 outputMode=_outputMode,
-                broadcastCard=broadcastCardIsActive ? _broadcastCardId : null,preparedCard=broadcastCardIsActive ? _preparedControlCard : null,controlCardOrder=_controlCardOrder.ToArray(),
+                broadcastCard=broadcastCardIsActive ? _broadcastCardId : null,programCardCut=_programCardCut,preparedCard=broadcastCardIsActive ? _preparedControlCard : null,controlCardOrder=_controlCardOrder.ToArray(),
                 obs=new { connected=_obsClient?.IsConnected==true,status=_obsStatus,hosts=_obsFoundHosts.ToArray(),host=_obsHost,port=_obsPort },
                 account=new { connected=_chatGptAccount.CanTranslate,text=ChatGptStatusText.Text,button=ChatGptConnectButton.Content?.ToString() },
                 usage=new { translations=_sessionTranslations,cues=_sessionTranslatedCues,status=_usageStatus,lastActivity=_lastTranslationActivity?.ToString("dd MMM HH:mm",System.Globalization.CultureInfo.GetCultureInfo("tr-TR")) ?? "—" },

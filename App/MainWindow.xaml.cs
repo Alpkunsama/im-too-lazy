@@ -90,7 +90,7 @@ public partial class MainWindow : Window
         if (_activeProfilePath != null)
         {
             RegisterProfilePath(_activeProfilePath);
-            try { var profile = SubtitleProfile.Load(_activeProfilePath); _glossaryEntries = profile.Glossary.ToList(); _playlists = profile.Playlists.ToList(); _selectedPlaylistId = _playlists.FirstOrDefault()?.Id; }
+            try { var profile = SubtitleProfile.Load(_activeProfilePath); _glossaryEntries = profile.Glossary.ToList(); _playlists = profile.Playlists.ToList(); RestoreControlCards(profile); _selectedPlaylistId = _playlists.FirstOrDefault()?.Id; }
             catch { _glossaryEntries = new(); }
         }
         InitializeComponent();
@@ -534,6 +534,7 @@ public partial class MainWindow : Window
 
     private async Task ClearSlotAsync(Slot slot)
     {
+        _controlCardOrder.Remove($"slot-{slot.Number}");
         CancelTranslation(slot);
         slot.RequestedLanguage = _preferences.TargetLanguage;
         slot.UseSourceSubtitles = false;

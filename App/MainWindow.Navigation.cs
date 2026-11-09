@@ -189,6 +189,7 @@ public partial class MainWindow
         }
         RemoveAndShift(_vmixSlotInputKeys, number);
         RemoveAndShift(_obsSlotInputKeys, number);
+        ShiftControlSlotsAfterRemoval(number);
         foreach (var remaining in _slots.Where(item => item.Number > number)) remaining.Number--;
 
         if (_detailSlot == slot) { _detailSlot = null; _draftDirty = false; }

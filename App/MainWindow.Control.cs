@@ -1,18 +1,67 @@
 using System.Xml.Linq;
+using VmixSubtitleController.Output;
 namespace VmixSubtitleController;
 public partial class MainWindow
 {
  private readonly List<string> _controlCardOrder=new();
+ private void RestoreControlCards(SubtitleProfile profile)
+ {
+  var known = Enumerable.Range(1, profile.SlotCount).Select(number => $"slot-{number}")
+   .Concat(profile.Playlists.Select(list => $"playlist-{list.Id}"));
+  if (!profile.ExplicitControlCards)
+  {
+   // Preserve cards visible in profiles saved before Control membership was explicit.
+   known = profile.Subtitles.Where(slot => slot.Cues.Count > 0 &&
+     (!string.IsNullOrWhiteSpace(profile.VmixSlotInputs.GetValueOrDefault(slot.Number)) ||
+      !string.IsNullOrWhiteSpace(profile.ObsSlotInputs.GetValueOrDefault(slot.Number))))
+    .Select(slot => $"slot-{slot.Number}")
+    .Concat(profile.Playlists.Where(list => list.Videos.Count > 0).Select(list => $"playlist-{list.Id}"));
+  }
+  var eligible = known.ToHashSet();
+  _controlCardOrder.Clear();
+  _controlCardOrder.AddRange(profile.ControlCardOrder.Where(eligible.Contains));
+  if (!profile.ExplicitControlCards)
+   _controlCardOrder.AddRange(known.Where(id => !_controlCardOrder.Contains(id)).Distinct().ToArray());
+ }
+
+ private void SetControlCardVisibility(string id, bool visible)
+ {
+  if (!visible) { _controlCardOrder.Remove(id); return; }
+  if (_controlCardOrder.Contains(id)) return;
+  var ready = id.StartsWith("slot-", StringComparison.Ordinal) && int.TryParse(id.AsSpan(5), out var number)
+   ? _slots.Any(slot => slot.Number == number && !string.IsNullOrWhiteSpace(slot.InputKey) &&
+       slot.Cues.Count > 0 && slot.TranslationCancellation == null)
+   : id.StartsWith("playlist-", StringComparison.Ordinal) &&
+       _playlists.Any(list => list.Id == id[9..] && list.OutputMode == _outputMode && list.Videos.Count > 0);
+  if (!ready) throw new InvalidOperationException("Control’e eklemek için önce altyazıyı veya listeyi hazırlayın.");
+  _controlCardOrder.Add(id);
+ }
+
+ private void ShiftControlSlotsAfterRemoval(int number)
+ {
+  string? Shift(string? id)
+  {
+   if (id == null || !id.StartsWith("slot-", StringComparison.Ordinal) || !int.TryParse(id.AsSpan(5), out var slot)) return id;
+   return slot == number ? null : slot > number ? $"slot-{slot - 1}" : id;
+  }
+  var shifted = _controlCardOrder.Select(Shift).OfType<string>().ToArray();
+  _controlCardOrder.Clear();
+  _controlCardOrder.AddRange(shifted);
+  _broadcastCardId = Shift(_broadcastCardId);
+  _preparedControlCard = Shift(_preparedControlCard);
+  if (_broadcastCardId == null) _broadcastCardInputKey = null;
+ }
+
  private void SetControlCardOrder(string[] ids){
-  var known=_slots.Select(x=>$"slot-{x.Number}").Concat(_playlists.Select(x=>$"playlist-{x.Id}")).ToHashSet();
+  var known=_controlCardOrder.ToHashSet();
   if(ids.Length>10000||ids.Distinct().Count()!=ids.Length||ids.Any(id=>!known.Contains(id)))throw new InvalidOperationException("Kart sırası geçersiz.");
-  var remainder=_controlCardOrder.Where(id=>known.Contains(id)&&!ids.Contains(id)).ToArray();_controlCardOrder.Clear();_controlCardOrder.AddRange(ids);_controlCardOrder.AddRange(remainder);
+  var remainder=_controlCardOrder.Where(id=>!ids.Contains(id)).ToArray();_controlCardOrder.Clear();_controlCardOrder.AddRange(ids);_controlCardOrder.AddRange(remainder);
  }
  private void MoveControlCard(string source,string target){
-  var known=_slots.Select(x=>$"slot-{x.Number}").Concat(_playlists.Select(x=>$"playlist-{x.Id}")).ToList();
+  var known=_controlCardOrder;
   if(source==target)return;
   if(!known.Contains(source)||!known.Contains(target))throw new InvalidOperationException("Sıralanacak kart bulunamadı.");
-  var ordered=_controlCardOrder.Where(known.Contains).Concat(known).Distinct().ToList();
+  var ordered=known.ToList();
   var sourceIndex=ordered.IndexOf(source);var targetIndex=ordered.IndexOf(target);
   ordered.RemoveAt(sourceIndex);ordered.Insert(targetIndex,source);
   _controlCardOrder.Clear();_controlCardOrder.AddRange(ordered);
@@ -45,11 +94,49 @@ public partial class MainWindow
   }finally{_controlActionGate.Release();}
  }
  private string? _preparedControlCard;
+ private long _programCardCut;
+
+ private void SetBroadcastCardOnOutput(string cardId, string inputKey)
+ {
+  _broadcastCardId = cardId;
+  _broadcastCardInputKey = inputKey;
+  _programCardCut++;
+ }
+ private async Task ConfirmObsPreparedAsync(ObsWebSocketClient client, string scene, int itemId, string input)
+ {
+  await PreparedPlayback.ConfirmAsync(async token =>
+  {
+   var status = await client.GetMediaStatusAsync(input, token);
+   return status.State switch
+   {
+    "OBS_MEDIA_STATE_PAUSED" when PreparedPlayback.IsAtStart(status.PositionMilliseconds) => PreparedMediaState.PausedAtStart,
+    "OBS_MEDIA_STATE_PLAYING" => PreparedMediaState.NeedsPause,
+    "OBS_MEDIA_STATE_PAUSED" when status.PositionMilliseconds.HasValue => PreparedMediaState.NeedsRewind,
+    "OBS_MEDIA_STATE_STOPPED" or "OBS_MEDIA_STATE_ENDED" or "OBS_MEDIA_STATE_NONE" => PreparedMediaState.NeedsRestart,
+    _ => PreparedMediaState.Waiting
+   };
+  }, async (state, token) =>
+  {
+   if (state == PreparedMediaState.NeedsRestart)
+   {
+    await client.RestartMediaInputAsync(input, token);
+    await client.PauseMediaInputAsync(input, token);
+   }
+   else if (state == PreparedMediaState.NeedsPause)
+    await client.PauseMediaInputAsync(input, token);
+   else
+    await client.RewindMediaAsync(input, token);
+  }, _lifetime.Token);
+  if (await client.GetCurrentProgramSceneAsync(_lifetime.Token) != scene ||
+      !(await client.GetSceneItemsAsync(scene, _lifetime.Token)).Any(item => item.Id == itemId && item.Enabled))
+   throw new InvalidOperationException("Hazırlanan video artık OBS çıkışında değil.");
+ }
+
  private async Task PrepareControlSlotAsync(int number,bool prepareOnly=true){
   var slot=_slots.FirstOrDefault(x=>x.Number==number)??throw new InvalidOperationException("Slot bulunamadı.");
   if(string.IsNullOrWhiteSpace(slot.InputKey))throw new InvalidOperationException("Slot videosunu seçin.");
   ResetPlaylistPlayback();_preparedControlCard=null;_playlistQueue.Add(slot.InputKey);
-  try{await PlayPlaylistItemAsync(0,prepareOnly);_playlistQueue.Clear();_playlistIndex=-1;_broadcastCardId=$"slot-{number}";_broadcastCardInputKey=slot.InputKey;_preparedControlCard=prepareOnly?_broadcastCardId:null;if(!prepareOnly)await EnsureControlPlaybackStartedAsync(slot.InputKey);GlobalStatus.Text=prepareOnly?"Video çıkışta hazır; oynatılmıyor.":"Video PGM’de oynatılıyor.";}
+  try{await PlayPlaylistItemAsync(0,prepareOnly,slotNumber:number);_playlistQueue.Clear();_preparedControlCard=prepareOnly?_broadcastCardId:null;if(!prepareOnly)await EnsureControlPlaybackStartedAsync(slot.InputKey);GlobalStatus.Text=prepareOnly?"Video çıkışta hazır; oynatılmıyor.":"Video PGM’de oynatılıyor.";}
   catch{ResetPlaylistPlayback();throw;}
  }
  private async Task PrepareControlListAsync(string id,bool prepareOnly=true){

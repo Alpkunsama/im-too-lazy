@@ -9,5 +9,6 @@
     <Compile Include="../ReleaseUpdate.cs" />
     <Compile Include="../SubtitleFiles.cs" />
     <Compile Include="../Output/PlaylistClock.cs" />
+    <Compile Include="../Output/PreparedPlayback.cs" />
   </ItemGroup>
 </Project>

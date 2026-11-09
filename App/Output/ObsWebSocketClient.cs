@@ -135,9 +135,8 @@ public sealed class ObsWebSocketClient : IAsyncDisposable
     }
 
     public async Task PauseMediaInputAsync(string inputName,CancellationToken cancellationToken=default){using var response=await RequestAsync("TriggerMediaInputAction",new {inputName,mediaAction="OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"},cancellationToken);}
-    public async Task PauseAndRewindMediaAsync(string inputName,CancellationToken cancellationToken=default)
+    public async Task RewindMediaAsync(string inputName,CancellationToken cancellationToken=default)
     {
-        using var pause=await RequestAsync("TriggerMediaInputAction",new {inputName,mediaAction="OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"},cancellationToken);
         using var rewind=await RequestAsync("SetMediaInputCursor",new {inputName,mediaCursor=0},cancellationToken);
     }
     public async Task PlayMediaInputAsync(string inputName,CancellationToken cancellationToken=default)

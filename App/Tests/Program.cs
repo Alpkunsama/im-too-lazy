@@ -56,3 +56,37 @@ Check(PlaylistClock.Calculate(["a", "b", "a"], durations, 1, 5000) == new Playli
     "Playlist total includes repeated videos");
 Check(PlaylistClock.Calculate(["a", "unknown"], durations, 0, 5000) == new PlaylistClockResult(null, 5000, null),
     "Unknown duration does not produce a misleading countdown");
+
+Check(PreparedPlayback.IsAtStart(0) && !PreparedPlayback.IsAtStart(null) && !PreparedPlayback.IsAtStart(80),
+    "Prepared position must be known and near the first frame");
+var sampled = 0;
+var corrections = new List<PreparedMediaState>();
+var delayedAutoplay = new Queue<PreparedMediaState>([
+    PreparedMediaState.Waiting, PreparedMediaState.PausedAtStart, PreparedMediaState.PausedAtStart,
+    PreparedMediaState.NeedsPause, PreparedMediaState.PausedAtStart, PreparedMediaState.PausedAtStart, PreparedMediaState.PausedAtStart
+]);
+await PreparedPlayback.ConfirmAsync(_ =>
+{
+    sampled++;
+    return Task.FromResult(delayedAutoplay.Dequeue());
+}, (state, _) =>
+{
+    corrections.Add(state);
+    return Task.CompletedTask;
+}, default, TimeSpan.Zero);
+Check(sampled == 7 && corrections.SequenceEqual([PreparedMediaState.NeedsPause]),
+    "Delayed autoplay resets confirmation and is paused again");
+
+corrections.Clear();
+var neverReady = false;
+try
+{
+    await PreparedPlayback.ConfirmAsync(_ => Task.FromResult(PreparedMediaState.NeedsRestart), (state, _) =>
+    {
+        corrections.Add(state);
+        return Task.CompletedTask;
+    }, default, TimeSpan.Zero);
+}
+catch (InvalidOperationException) { neverReady = true; }
+Check(neverReady && corrections.SequenceEqual([PreparedMediaState.NeedsRestart]),
+    "A failed OBS restart is attempted once and never reported ready");

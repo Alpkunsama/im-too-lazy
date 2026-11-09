@@ -6,7 +6,7 @@ namespace VmixSubtitleController;
 
 public sealed record AppPreferences
 {
-    public static readonly string[] ThemeIds = { "graphite", "violet", "teal", "wine", "amber", "light", "cosmic", "sakura", "cyberpunk", "matrix", "arcade", "aurora" };
+    public static readonly string[] ThemeIds = { "graphite", "violet", "teal", "wine", "amber", "light", "cosmic", "sakura", "cyberpunk", "matrix", "arcade", "aurora", "topography", "deep-sea", "blueprint" };
     public static readonly string[] InterfaceLanguageIds = { "tr", "en", "fr", "es", "ja", "ko", "de", "zh", "pt", "ru" };
     public static readonly string[] Languages = { "Türkçe", "İngilizce", "Almanca", "Fransızca", "İspanyolca", "İtalyanca", "Portekizce", "Hollandaca", "Lehçe", "Ukraynaca", "Rusça", "Arapça", "Farsça", "Japonca", "Korece", "Çince (Basitleştirilmiş)", "Çince (Geleneksel)", "Hintçe", "İsveççe", "Yunanca" };
     public const string DefaultTheme = "https://www.youtube.com/watch?v=q95PHFczcVA";

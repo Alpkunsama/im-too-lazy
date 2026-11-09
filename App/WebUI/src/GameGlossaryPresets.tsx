@@ -43,7 +43,6 @@ export default function GameGlossaryPresets({entries,languages,command}:{
 
   return <section className="card form-card game-glossary-presets">
     <h2>Oyun sözlüğü presetleri</h2>
-    <p>Preset ekleyerek oyun terimlerinin seçtiğin hedef dilde aynen korunmasını sağlayabilirsin.</p>
     <div className="glossary-applied-presets">
       <h3>Eklenen presetler</h3>
       {applied.size===0&&<p>Bu profilde kayıtlı preset yok.</p>}
@@ -69,6 +68,5 @@ export default function GameGlossaryPresets({entries,languages,command}:{
       <button className="control primary" type="button" disabled={busy} onClick={()=>void add()}>Terimleri sözlüğe ekle</button>
     </>}
     <p role="status">{status}</p>
-    <small>Mevcut karşılıklar korunur. Preseti kaldırdığında yalnızca o presetin bu dil için eklediği terimler silinir.</small>
   </section>;
 }

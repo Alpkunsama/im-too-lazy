@@ -23,6 +23,7 @@ public sealed record SubtitleProfile
     public List<GlossaryEntry> Glossary { get; init; } = new();
 
     public List<string> ControlCardOrder {get;init;}=new();
+    public bool ExplicitControlCards { get; init; }
     public List<VideoPlaylist> Playlists { get; init; } = new();
 
     public void Validate()
@@ -138,7 +139,7 @@ public sealed record ProfileSubtitleSlot
 public sealed record ProfileUi
 {
  public string replaySettings {get;init;}="";
- public int previewFontSize {get;init;}=28;
+ public int previewFontSize {get;init;}=16;
  public bool collapsed {get;init;}
  public string chatTarget {get;init;}="Türkçe";
  public string glossaryLanguage {get;init;}="Türkçe";
